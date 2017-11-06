@@ -54,28 +54,22 @@ class Actor {
   }
 }
 class Level {
-  constructor(grid = [], actors = []) {
-    this.grid = grid.slice();
-    this.actors = actors;
-    this.player = (this.actors.find(function (el) {
-        return (el.type === 'player');
-    }));
-    if (grid) {
+  constructor(grid, actors){
+    if(grid){
+      this.grid = grid;
       this.height = grid.length;
-      if (grid[0]) {
-        let widthOfgrid = 0;
-        for (let i = 0; i < grid.length; i++) {
-          if (widthOfgrid < grid[i].length) {
-            widthOfgrid = grid[i].length;
-          }
-        }
-        this.width = widthOfgrid;
-      } else {
-        this.width = 0;
-      }
+      this.width = Math.max( ...grid.map(function (el) {
+        return el.length;
+      }));
     } else {
       this.height = 0;
       this.width = 0;
+    }
+    if(actors){
+      this.actors = actors;
+      this.player = (this.actors.find(function (el) {
+        return (el.type === 'player');
+      }));
     }
     this.status = null;
     this.finishDelay = 1;
@@ -87,39 +81,34 @@ class Level {
     if ((objectForCheck === undefined) || !(objectForCheck instanceof Actor)) {
       throw new Error (`Ошибка в actorAt`);
     }
-    let crossedObject;
     if (this.actors) {
-      for (let i = 0; i < this.actors.length; i++) {
-        if (this.actors[i] !== undefined) {
-          if (this.actors[i].isIntersect(objectForCheck) === true) {
-            crossedObject = this.actors[i];
-            break;
-          }
+      for(let actor of this.actors){
+        if (objectForCheck.isIntersect(actor)){
+          return actor;
         }
       }
     } else {
       return undefined;
     }
-    return crossedObject;
   }
  obstacleAt(moveTo, size) {
     if ( !(moveTo instanceof Vector) || !(size instanceof Vector) ){
       throw new Error ('Ошибка в obstacleAt');
     }
-    let newActor = new Actor(moveTo, size);
+    const newActor = new Actor(moveTo, size);
     if (newActor.bottom > this.height){
       return 'lava';
     } else if ( (newActor.left < 0) || (newActor.right > this.width) || (newActor.top < 0) ){
       return 'wall';
     }
-    let i = Math.floor(newActor.top);
-    let iTo = Math.ceil(newActor.bottom);
-    let j = Math.floor(newActor.left);
-    let jTo = Math.ceil(newActor.right);
+    const i = Math.floor(newActor.top);
+    const iTo = Math.ceil(newActor.bottom);
+    const j = Math.floor(newActor.left);
+    const jTo = Math.ceil(newActor.right);
     for(let I = i; I < iTo; I++){
       for(let J = j; J < jTo; J++){
         if(this.grid[I][J]){
-          let obstalce = this.grid[I][J];
+          const obstalce = this.grid[I][J];
           return obstalce;
         }
       }
@@ -131,18 +120,12 @@ class Level {
     }), 1);
   }
   noMoreActors(typeOfActor) {
-    let availibility = true;
-    if (this.actors) {
-      for (let i = 0; i < this.actors.length; i++) {
-        if (this.actors[i] !== undefined) {
-            if (this.actors[i].type === typeOfActor) {
-            availibility = false;
-            break;
-          }
-        }
-      }
-    }  
-    return availibility;
+    if (!(this.actors)){
+      return true;
+    }
+    return !( this.actors.find(function (el) {
+      return (el.type === typeOfActor);
+    }));
   }
   playerTouched(type, touchedObject) {
     if (type === `lava` || type === `fireball` && this.status === null) {
@@ -178,34 +161,32 @@ class LevelParser {
     }
   }
   createGrid(arr) {
-    let arrOfObatcles = [];
-    for (let i = 0; i < arr.length; i++) {
-      arrOfObatcles[i] = arr[i].split(``);
-    }
-    for (let i = 0; i < arrOfObatcles.length; i++) {
-      for (let j = 0; j < arrOfObatcles[i].length; j++) {
-        arrOfObatcles[i][j] = this.obstacleFromSymbol(arrOfObatcles[i][j]);
-      }
-    }
-    return arrOfObatcles;
+    if(!arr)
+      return;
+    return arr.map((row)=>{
+      return row.split('').map((item)=>{
+        return this.obstacleFromSymbol(item);
+      });
+    });
   }
-  createActors(arr) {
-    let arrOfActors = [];
-    for (let i = 0; i < arr.length; i++) {
-      arrOfActors[i] = arr[i].split(``);
-    }
-    let finalArrOfActors = [];
-    for (let i = 0; i < arrOfActors.length; i++) {
-      for (let j = 0; j < arrOfActors[i].length; j++) {
-        if (arrOfActors[i][j]) {
-          let ConstructorOfActor = this.actorFromSymbol(arrOfActors[i][j]);
-          if (ConstructorOfActor && typeof ConstructorOfActor === `function` && new ConstructorOfActor(new Vector(j, i)) instanceof Actor) {
-            finalArrOfActors.push(new ConstructorOfActor(new Vector(j, i)));
+  createActors(arr){
+    if(!arr)
+      return;
+    if(!this.dictionary)
+      return [];
+    const actors = [];
+    const self = this;
+    arr.forEach( function (row, i) {
+      row.split('').forEach( function(item, j){
+        if(typeof self.actorFromSymbol(item) === 'function') {
+          if ((self.actorFromSymbol(item)).prototype instanceof Actor || (self.actorFromSymbol(item)) === Actor) {
+            const Creator = self.actorFromSymbol(item);
+            actors.push(new Creator(new Vector(j, i)));
           }
         }
-      }
-    }
-    return finalArrOfActors;
+      });
+    });
+    return actors;
   }
   parse(arr) {
     return new Level(this.createGrid(arr), this.createActors(arr));
@@ -213,7 +194,7 @@ class LevelParser {
 }
 class Player extends Actor {
   constructor (position = new Vector(0, 0), size = new Vector(0.8, 1.5), speed = new Vector(0, 0)) {
-    let changedPos = position.plus(new Vector(0, -0.5));
+    const changedPos = position.plus(new Vector(0, -0.5));
     super(changedPos, size);
     this.actor = `player`;
     }
@@ -230,7 +211,7 @@ class Fireball extends Actor {
     this.speed = this.speed.times(-1);
   }
   act(time, level) {
-    let newPosition = this.getNextPosition(time);
+    const newPosition = this.getNextPosition(time);
     if (level.obstacleAt(newPosition, this.size)){
       this.handleObstacle();
     } else {
@@ -276,7 +257,7 @@ class Coin extends Actor {
   }
   getNextPosition(time = 1) {
     this.updateSpring(time);
-    let spring = this.posForSpring.plus(this.getSpringVector());
+    const spring = this.posForSpring.plus(this.getSpringVector());
     return spring.plus(new Vector(0.2, 0.1));
   }
   act(time) {
