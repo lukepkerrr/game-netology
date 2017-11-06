@@ -6,7 +6,7 @@ class Vector {
   }
   plus(childOfVector) {
     if (! (childOfVector instanceof Vector)) {
-      throw new Error (`Можно прибавлять к вектору только вектор типа Vector`);
+      throw new Error ('Можно прибавлять к вектору только вектор типа Vector');
     }
     return new Vector(this.x + childOfVector.x, this.y + childOfVector.y);
   }
@@ -22,7 +22,7 @@ class Actor {
       this.speed = speed;
       this.actor = `actor`;
     } else {
-      throw new Error (`Ошибка в Actor`);
+      throw new Error ('Ошибка в Actor');
     }
   }
   act() {
@@ -54,42 +54,25 @@ class Actor {
   }
 }
 class Level {
-  constructor(grid, actors){
-    if(grid){
-      this.grid = grid;
-      this.height = grid.length;
-      this.width = Math.max( ...grid.map(function (el) {
-        return el.length;
-      }));
-    } else {
-      this.height = 0;
+  constructor(grid = [], actors = []){
+    this.grid = grid.slice();
+    this.height = grid.length;
+    this.width = Math.max( ...grid.map((el) => el.length));
+	  if (this.width === -Infinity) {
       this.width = 0;
     }
-    if(actors){
-      this.actors = actors;
-      this.player = (this.actors.find(function (el) {
-        return (el.type === 'player');
-      }));
-    }
+    this.actors = actors.slice();
+    this.player = (this.actors.find(function (el) {
+      return (el.type === 'player');
+    }));
     this.status = null;
     this.finishDelay = 1;
   }
   isFinished() {
-    return ((this.status !== null)  && (this.finishDelay < 0));
+    return this.status !== null  && this.finishDelay < 0;
   }
   actorAt(objectForCheck) {
-    if ((objectForCheck === undefined) || !(objectForCheck instanceof Actor)) {
-      throw new Error (`Ошибка в actorAt`);
-    }
-    if (this.actors) {
-      for(let actor of this.actors){
-        if (objectForCheck.isIntersect(actor)){
-          return actor;
-        }
-      }
-    } else {
-      return undefined;
-    }
+	return this.actors.find(el => el.isIntersect(objectForCheck));
   }
  obstacleAt(moveTo, size) {
     if ( !(moveTo instanceof Vector) || !(size instanceof Vector) ){
@@ -107,25 +90,23 @@ class Level {
     const jTo = Math.ceil(newActor.right);
     for(let I = i; I < iTo; I++){
       for(let J = j; J < jTo; J++){
-        if(this.grid[I][J]){
-          const obstalce = this.grid[I][J];
-          return obstalce;
+		const obstacle = this.grid[I][J];
+        if(obstacle){
+          return obstacle;
         }
       }
     }
   }
   removeActor(objectForDelete){
-    this.actors.splice((this.actors).findIndex(function (el, i) {
+    const forDelete = this.actors.findIndex(function (el) {
       return (el === objectForDelete);
-    }), 1);
+    });
+    if (forDelete !== -1)  {
+      this.actors.splice(forDelete, 1);
+    }
   }
   noMoreActors(typeOfActor) {
-    if (!(this.actors)){
-      return true;
-    }
-    return !( this.actors.find(function (el) {
-      return (el.type === typeOfActor);
-    }));
+    return !( this.actors.some((el) => (el.type === typeOfActor)));
   }
   playerTouched(type, touchedObject) {
     if (type === `lava` || type === `fireball` && this.status === null) {
@@ -277,7 +258,8 @@ loadLevels()
     let scheme;
     try{
       scheme = JSON.parse(levels);
-      runGame(scheme, parser, DOMDisplay);
+      runGame(scheme, parser, DOMDisplay)
+	  	.then(() => console.log('Вы выиграли приз'));
     } catch (err){
       console.error(err);
     }
