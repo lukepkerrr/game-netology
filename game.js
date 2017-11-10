@@ -57,9 +57,6 @@ class Level {
     this.grid = grid.slice();
     this.height = grid.length;
     this.width = Math.max( ...grid.map((el) => el.length), 0);
-    if (this.width === -Infinity) {
-      this.width = 0;
-    }
     this.actors = actors.slice();
     this.player = (this.actors.find((el) => el.type === 'player'));
     this.status = null;
