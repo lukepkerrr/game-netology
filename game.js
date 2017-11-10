@@ -57,7 +57,7 @@ class Level {
     this.grid = grid.slice();
     this.height = grid.length;
     this.width = Math.max( ...grid.map((el) => el.length), 0);
-	  if (this.width === -Infinity) {
+	if (this.width === -Infinity) {
       this.width = 0;
     }
     this.actors = actors.slice();
@@ -71,8 +71,8 @@ class Level {
   actorAt(objectForCheck) {
     if (!(objectForCheck instanceof Actor)) {
       throw new Error ('Ошибка в actorAt');
-	  }
-	  return this.actors.find(el => el.isIntersect(objectForCheck));
+	}
+	return this.actors.find(el => el.isIntersect(objectForCheck));
   }
  obstacleAt(moveTo, size) {
     if ( !(moveTo instanceof Vector) || !(size instanceof Vector) ){
