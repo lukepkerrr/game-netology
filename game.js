@@ -249,12 +249,7 @@ const actorDict = {
 };
 const parser = new LevelParser(actorDict);
 loadLevels()
-  .then((levels) => {
-    try{
-	  const scheme = JSON.parse(levels);
-      runGame(scheme, parser, DOMDisplay)
-	  	.then(() => console.log('Вы выиграли приз'));
-    } catch (err){
-      console.error(err);
-    }
-  });
+  .then((levels) => JSON.parse(levels))
+  .then((scheme) => runGame(scheme, parser, DOMDisplay))
+  .then(() => alert('Вы выиграли приз!'))
+  .catch((err) => console.error(err))
