@@ -68,7 +68,7 @@ class Level {
   actorAt(objectForCheck) {
     if (!(objectForCheck instanceof Actor)) {
       throw new Error ('Ошибка в actorAt');
-  }
+    }
     return this.actors.find(el => el.isIntersect(objectForCheck));
   }
  obstacleAt(moveTo, size) {
