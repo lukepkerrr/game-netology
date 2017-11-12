@@ -167,7 +167,7 @@ class LevelParser {
 class Player extends Actor {
   constructor (position = new Vector(0, 0), size = new Vector(0.8, 1.5), speed = new Vector(0, 0)) {
     super(position.plus(new Vector(0, -0.5)), size);
-    }
+  }
   get type() {
     return 'player';
   }
