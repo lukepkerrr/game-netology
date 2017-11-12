@@ -16,7 +16,7 @@ class Vector {
 }
 class Actor {
   constructor(position = new Vector(0, 0), size = new Vector(1, 1), speed = new Vector(0, 0)) {
-    if ((position instanceof Vector) && (size instanceof Vector) && (speed instanceof Vector)) {
+    if (position instanceof Vector && size instanceof Vector && speed instanceof Vector) {
       this.pos = position;
       this.size = size;
       this.speed = speed;
@@ -79,7 +79,7 @@ class Level {
     if (newActor.bottom > this.height){
       return 'lava';
     }
-    if ( (newActor.left < 0) || (newActor.right > this.width) || (newActor.top < 0) ){
+    if (newActor.left < 0 || newActor.right > this.width || newActor.top < 0){
       return 'wall';
     }
     const i = Math.floor(newActor.top);
@@ -96,7 +96,7 @@ class Level {
     }
   }
   removeActor(objectForDelete){
-    const forDelete = this.actors.findIndex((el) => (el === objectForDelete));
+    const forDelete = this.actors.findIndex((el) => el === objectForDelete);
     if (forDelete !== -1)  {
       this.actors.splice(forDelete, 1);
     }
@@ -166,8 +166,7 @@ class LevelParser {
 }
 class Player extends Actor {
   constructor (position = new Vector(0, 0), size = new Vector(0.8, 1.5), speed = new Vector(0, 0)) {
-    const changedPos = position.plus(new Vector(0, -0.5));
-    super(changedPos, size);
+    super(position.plus(new Vector(0, -0.5)), size);
     }
   get type() {
     return 'player';
@@ -217,7 +216,7 @@ class FireRain extends Fireball {
 class Coin extends Actor {
   constructor (position = new Vector(0, 0)) {
     super(position.plus(new Vector(0.2, 0.1)), new Vector(0.6, 0.6));
-    this.posForSpring = position;
+    this.posForSpring = position.plus(new Vector(0.2, 0.1));
     this.springSpeed = 8;
     this.springDist = 0.07;
     this.spring = Math.random() * 2 * Math.PI;
@@ -233,19 +232,18 @@ class Coin extends Actor {
   }
   getNextPosition(time = 1) {
     this.updateSpring(time);
-    const spring = this.posForSpring.plus(this.getSpringVector());
-    return spring.plus(new Vector(0.2, 0.1));
+    return this.posForSpring.plus(this.getSpringVector());
   }
   act(time) {
     this.pos = this.getNextPosition(time);
   }
 }
 const actorDict = {
-    '@': Player,
-    'v': FireRain,
-    'o': Coin,
-    '=': HorizontalFireball,
-    '|': VerticalFireball
+  '@': Player,
+  'v': FireRain,
+  'o': Coin,
+  '=': HorizontalFireball,
+  '|': VerticalFireball
 };
 const parser = new LevelParser(actorDict);
 loadLevels()
