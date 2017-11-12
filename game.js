@@ -88,7 +88,7 @@ class Level {
     const jTo = Math.ceil(newActor.right);
     for(let I = i; I < iTo; I++){
       for(let J = j; J < jTo; J++){
-		const obstacle = this.grid[I][J];
+        const obstacle = this.grid[I][J];
         if(obstacle){
           return obstacle;
         }
