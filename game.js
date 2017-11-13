@@ -67,7 +67,7 @@ class Level {
   constructor(grid = [], actors = []) {
     this.grid = grid.slice();
     this.height = grid.length;
-    this.width = Math.max( ...grid.map((el) => el.length), 0);
+    this.width = Math.max(...grid.map((el) => el.length), 0);
     this.actors = actors.slice();
     this.player = (this.actors.find((el) => el.type === 'player'));
     this.status = null;
